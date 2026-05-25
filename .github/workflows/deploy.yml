@@ -1,11 +1,19 @@
 name: Deploy static content to Pages
+
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
+  workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
 jobs:
   deploy:
     environment:
@@ -15,23 +23,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+          
       - name: Install dependencies
-        run: npm install
-      - name: Build
-        env:
-          # This injects the TMDB secret into the built HTML files
-          VITE_TMDB_API_KEY: ${{ secrets.VITE_TMDB_API_KEY }} 
+        run: npm ci
+        
+      - name: Build project
         run: npm run build
+        env:
+          # This pulls the secret you added in Step 2 into the build
+          VITE_TMDB_API_KEY: ${{ secrets.VITE_TMDB_API_KEY }}
+          
       - name: Setup Pages
         uses: actions/configure-pages@v4
+        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          # Tells GitHub Pages to host the compiled output folder
           path: './dist'
+          
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
