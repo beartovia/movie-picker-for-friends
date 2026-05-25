@@ -1,0 +1,25 @@
+{
+  "entities": {
+    "Movie": {
+      "title": "Movie Recommendation",
+      "description": "A movie recommended by a user",
+      "type": "object",
+      "properties": {
+        "externalId": { "type": "string" },
+        "title": { "type": "string" },
+        "genre": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "suggestedBy": { "type": "string" },
+        "watched": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["externalId", "title", "genre", "suggestedBy", "watched", "createdAt"]
+    }
+  },
+  "firestore": {
+    "movies/{movieId}": {
+      "schema": { "$ref": "#/entities/Movie" },
+      "description": "Added movies pool"
+    }
+  }
+}

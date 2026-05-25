@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    function isValidMovie(data) {
+      return data.keys().hasAll(['externalId', 'title', 'genre', 'suggestedBy', 'watched', 'createdAt']) && 
+             data.keys().size() == 7 &&
+             data.externalId is string && data.externalId.size() <= 100 &&
+             data.title is string && data.title.size() <= 300 &&
+             data.genre is string && data.genre.size() <= 50 &&
+             data.imageUrl is string && data.imageUrl.size() <= 1000 &&
+             data.suggestedBy is string && data.suggestedBy.size() <= 100 &&
+             data.watched is bool &&
+             data.createdAt is number;
+    }
+    
+    match /movies/{movieId} {
+      // 1. Allow read for everyone (it's a public pool)
+      allow read: if true;
+      
+      // 2. Allow create with valid schema
+      allow create: if isValidId(movieId) && isValidMovie(incoming());
+      
+      // 3. Allow update (specifically marking as watched)
+      allow update: if isValidId(movieId) && isValidMovie(incoming()) && (
+        // Action: Mark as Watched
+        incoming().diff(existing()).affectedKeys().hasOnly(['watched']) && 
+        incoming().watched == true
+      );
+      
+      allow delete: if isValidId(movieId);
+    }
+  }
+}
