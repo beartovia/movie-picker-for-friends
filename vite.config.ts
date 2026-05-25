@@ -4,8 +4,8 @@ import path from 'path';
 import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
-    base: '/movie-picker-for-friends/', /
     plugins: [react(), tailwindcss()],
+    base: '/movie-picker-for-friends/',
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
